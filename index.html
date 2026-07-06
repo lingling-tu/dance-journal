@@ -1,0 +1,656 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dance Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F4F0; --card:#FFFFFF; --ink:#211D1B; --muted:#6E6862; --faint:#9A938C;
+    --line:#E4DFD7; --accent:#4A2540; --accent-soft:#8E5C7E; --accent-wash:#EFE6EC; --gold:#A98B4E;
+    --radius:10px;
+    --serif:"Fraunces","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+
+  header.masthead{padding:8px 0 0}
+  .brand{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand h1{font-family:var(--serif);font-weight:500;font-size:34px;letter-spacing:-.01em;margin:0;line-height:1}
+  .brand h1 em{font-style:italic;color:var(--accent)}
+  .tagline{color:var(--muted);font-size:13px;letter-spacing:.02em;margin-top:6px}
+  .io{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .barre{position:relative;height:3px;background:var(--ink);border-radius:2px;margin:20px 0 0}
+  .barre::before,.barre::after{content:"";position:absolute;top:-4px;width:11px;height:11px;border-radius:50%;background:var(--paper);border:3px solid var(--ink)}
+  .barre::before{left:-2px}.barre::after{right:-2px}
+
+  #syncBadge{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:20px;padding:5px 11px}
+  #syncBadge:hover{border-color:var(--faint)}
+  .sdot{font-size:10px;line-height:1}
+  .sdot.synced{color:#3f7d54}.sdot.syncing{color:var(--gold)}.sdot.offline{color:#b07a2e}.sdot.error{color:#b4453f}.sdot.local{color:var(--faint)}
+
+  nav.tabs{display:flex;gap:2px;margin:22px 0 26px;border-bottom:1px solid var(--line)}
+  .tab{appearance:none;background:none;border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding:10px 16px;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
+  .tab:hover{color:var(--muted)}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+  button.btn{appearance:none;font-family:var(--sans);font-weight:600;font-size:13px;letter-spacing:.02em;cursor:pointer;border-radius:8px;padding:9px 15px;border:1px solid var(--line);background:var(--card);color:var(--ink);transition:.15s}
+  button.btn:hover{border-color:var(--faint)}
+  button.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.btn.primary:hover{background:#5c3152}
+  button.btn.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:9px 10px}
+  button.btn.ghost:hover{color:var(--accent)}
+  button.btn.tiny{padding:5px 10px;font-size:12px}
+  button.btn.danger:hover{border-color:#b4453f;color:#b4453f}
+
+  .eyebrow{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-soft)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+  .card + .card{margin-top:16px}
+
+  .form-title{font-family:var(--serif);font-size:22px;font-weight:500;margin:2px 0 18px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 18px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.full{grid-column:1/-1}
+  label{font-size:12px;font-weight:600;letter-spacing:.03em;color:var(--muted)}
+  label .req{color:var(--accent-soft);font-weight:600}
+  input[type=text],input[type=date],input[type=number],textarea,select{font-family:var(--sans);font-size:14px;color:var(--ink);background:#FCFBF9;border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;transition:border-color .15s, box-shadow .15s}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent-soft);box-shadow:0 0 0 3px var(--accent-wash)}
+  textarea{resize:vertical;min-height:120px;line-height:1.55;font-family:var(--sans)}
+  .hint{font-size:11px;color:var(--faint)}
+  select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%239A938C' stroke-width='1.5'/></svg>");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
+
+  .level-add{display:flex;gap:8px;margin-top:8px}
+  .level-add input{flex:1}
+
+  .mins{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .mins input{width:88px}
+  .chips{display:flex;gap:6px}
+  .chip-btn{appearance:none;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:20px;padding:6px 12px;font-family:var(--sans);font-size:13px;font-weight:600;transition:.12s}
+  .chip-btn:hover{border-color:var(--accent-soft)}
+  .chip-btn.on{background:var(--accent-wash);border-color:transparent;color:var(--accent)}
+
+  .energy{display:flex;gap:7px;align-items:center;padding-top:2px}
+  .dot{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);cursor:pointer;background:#fff;transition:.12s}
+  .dot:hover{border-color:var(--accent-soft)}
+  .dot.on{background:var(--accent-soft);border-color:var(--accent-soft)}
+  .energy .lab{font-size:12px;color:var(--faint);margin-left:6px}
+
+  .form-actions{display:flex;gap:10px;align-items:center;margin-top:20px}
+  .save-note{font-size:12px;color:var(--accent-soft);opacity:0;transition:opacity .2s}
+  .save-note.show{opacity:1}
+
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 14px;flex-wrap:wrap}
+  .section-head h2{font-family:var(--serif);font-weight:500;font-size:20px;margin:0}
+  .count-pill{font-size:12px;color:var(--muted)}
+
+  .entry{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);margin-bottom:10px;overflow:hidden}
+  .entry-main{display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer}
+  .entry-date{font-family:var(--serif);text-align:center;min-width:52px;line-height:1}
+  .entry-date .d{font-size:22px;font-weight:600}
+  .entry-date .m{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .entry-body{flex:1;min-width:0}
+  .entry-body .studio{font-weight:600;font-size:15px}
+  .entry-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:12.5px;color:var(--muted)}
+  .chip{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:2px 9px;white-space:nowrap}
+  .chip.lvl{background:var(--accent-wash);border-color:transparent;color:var(--accent)}
+  .entry-len{font-family:var(--serif);font-size:15px;color:var(--ink);white-space:nowrap}
+  .caret{color:var(--faint);transition:transform .18s;font-size:12px}
+  .entry.open .caret{transform:rotate(90deg)}
+  .entry-detail{display:none;border-top:1px solid var(--line);padding:14px 16px 16px;background:#FCFBF9}
+  .entry.open .entry-detail{display:block}
+  .detail-actions{display:flex;gap:8px;margin-top:14px}
+  .no-notes{color:var(--faint);font-size:14px;margin:0}
+
+  .md{font-size:14px;color:var(--ink);line-height:1.6}
+  .md h1,.md h2,.md h3,.md h4{font-family:var(--serif);font-weight:500;margin:.6em 0 .3em;line-height:1.25}
+  .md h1{font-size:19px}.md h2{font-size:17px}.md h3{font-size:15.5px}.md h4{font-size:14.5px}
+  .md p{margin:.5em 0}
+  .md ul,.md ol{margin:.5em 0;padding-left:1.4em}
+  .md li{margin:.2em 0}
+  .md blockquote{margin:.6em 0;padding:.2em 0 .2em 14px;border-left:3px solid var(--accent-wash);color:var(--muted)}
+  .md code{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+  .md pre{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;margin:.6em 0}
+  .md pre code{background:none;border:none;padding:0}
+  .md a{color:var(--accent);text-decoration:underline}
+  .md hr{border:none;border-top:1px solid var(--line);margin:.8em 0}
+
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .filters input,.filters select{width:auto;flex:1;min-width:130px}
+  .filters .search{flex:2;min-width:180px}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .stat .n{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1}
+  .stat .l{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+  .stat .n small{font-size:15px;color:var(--muted);font-weight:500}
+
+  .groupbar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  .groupbar .lab{font-size:12px;color:var(--muted);font-weight:600}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{appearance:none;border:none;background:var(--card);cursor:pointer;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--muted);padding:7px 13px;border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:none}
+  .seg button.on{background:var(--accent);color:#fff}
+
+  table.summary{width:100%;border-collapse:collapse}
+  table.summary th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:600;padding:0 0 10px}
+  table.summary th.num,table.summary td.num{text-align:right;white-space:nowrap}
+  table.summary td{padding:11px 0;border-top:1px solid var(--line);vertical-align:middle;font-size:14px}
+  .bar-cell{width:38%}
+  .bar-track{position:relative;background:var(--paper);border-radius:6px;height:26px;overflow:hidden}
+  .bar-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--accent),var(--accent-soft));border-radius:6px;min-width:2px}
+  .gname{font-weight:600}
+  .gname .sub{display:block;font-weight:400;font-size:12px;color:var(--faint)}
+
+  .empty{text-align:center;padding:52px 20px;color:var(--muted)}
+  .empty .fig{font-family:var(--serif);font-size:34px;color:var(--accent);font-style:italic;margin-bottom:8px}
+  .empty p{margin:6px auto 0;max-width:380px}
+
+  .modenote{background:var(--accent-wash);color:var(--accent);border-radius:8px;padding:9px 12px;font-size:12.5px;margin-bottom:16px;display:none}
+  .modenote.show{display:block}
+
+  .overlay{position:fixed;inset:0;background:rgba(33,29,27,.4);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
+  .overlay.show{display:flex}
+  .modal{background:var(--card);border-radius:14px;max-width:520px;width:100%;padding:26px}
+  .modal h3{font-family:var(--serif);font-weight:500;font-size:22px;margin:0 0 4px}
+  .modal .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+  .modal .field{margin-bottom:13px}
+  .modal .row{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:20px;flex-wrap:wrap}
+  .steps{font-size:12.5px;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:4px 0 6px;line-height:1.55}
+  .steps a{color:var(--accent)}
+  .status-line{font-size:12.5px;margin-top:10px}
+
+  @media(max-width:640px){
+    .grid{grid-template-columns:1fr}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .brand h1{font-size:28px}
+    .bar-cell{display:none}
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="brand">
+      <div>
+        <h1>Dance <em>Journal</em></h1>
+        <div class="tagline">A practice journal for every class you take.</div>
+      </div>
+      <div class="io">
+        <span id="syncBadge" title="Sync status"></span>
+        <button class="btn tiny" id="settingsBtn">Settings</button>
+        <button class="btn tiny" id="exportJson">Export</button>
+        <button class="btn tiny" id="exportCsv">CSV</button>
+        <button class="btn tiny" id="importBtn">Import</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none">
+      </div>
+    </div>
+    <div class="barre"></div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-view="log">Log a class</button>
+    <button class="tab" data-view="history">History</button>
+    <button class="tab" data-view="summary">Summary</button>
+  </nav>
+
+  <div class="modenote" id="modenote"></div>
+
+  <section id="view-log">
+    <div class="card">
+      <div class="eyebrow" id="formEyebrow">New entry</div>
+      <div class="form-title" id="formTitle">What did you dance today?</div>
+      <div class="grid">
+        <div class="field">
+          <label for="f-date">Date <span class="req">·  required</span></label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="field">
+          <label for="f-studio">School / studio</label>
+          <input type="text" id="f-studio" list="dl-studio" placeholder="e.g. City Ballet Academy" autocomplete="off">
+          <datalist id="dl-studio"></datalist>
+        </div>
+        <div class="field">
+          <label for="f-level">Level / type</label>
+          <select id="f-level"></select>
+          <div class="level-add" id="levelAdd" style="display:none">
+            <input type="text" id="f-level-new" placeholder="New level or type" autocomplete="off">
+            <button class="btn tiny primary" id="levelConfirm">Add</button>
+            <button class="btn tiny" id="levelCancel">Cancel</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-instructor">Instructor</label>
+          <input type="text" id="f-instructor" list="dl-instructor" placeholder="e.g. Ms. Laurent" autocomplete="off">
+          <datalist id="dl-instructor"></datalist>
+        </div>
+        <div class="field">
+          <label for="f-minutes">Length</label>
+          <div class="mins">
+            <input type="number" id="f-minutes" min="0" step="5" placeholder="min">
+            <div class="chips" id="minChips">
+              <button class="chip-btn" data-min="60">60</button>
+              <button class="chip-btn" data-min="75">75</button>
+              <button class="chip-btn" data-min="90">90</button>
+              <button class="chip-btn" data-min="120">120</button>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>How you felt</label>
+          <div class="energy" id="f-energy">
+            <span class="dot" data-v="1"></span><span class="dot" data-v="2"></span><span class="dot" data-v="3"></span><span class="dot" data-v="4"></span><span class="dot" data-v="5"></span>
+            <span class="lab">energy · optional</span>
+          </div>
+        </div>
+        <div class="field full">
+          <label for="f-notes">Notes</label>
+          <textarea id="f-notes" placeholder="Corrections, combinations, how the class felt, anything to remember…"></textarea>
+          <span class="hint">Supports Markdown — **bold**, *italic*, # headings, - lists, &gt; quotes, [links](url).</span>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn primary" id="saveBtn">Save class</button>
+        <button class="btn ghost" id="cancelEdit" style="display:none">Cancel edit</button>
+        <span class="save-note" id="saveNote">Saved ✓</span>
+      </div>
+    </div>
+
+    <div style="margin-top:26px">
+      <div class="section-head"><h2>Recent</h2><span class="count-pill" id="recentCount"></span></div>
+      <div id="recentList"></div>
+    </div>
+  </section>
+
+  <section id="view-history" style="display:none">
+    <div class="filters">
+      <input type="text" class="search" id="searchBox" placeholder="Search notes, studios, instructors…">
+      <select id="filterStudio"><option value="">All studios</option></select>
+      <select id="filterLevel"><option value="">All levels / types</option></select>
+      <select id="filterInstructor"><option value="">All instructors</option></select>
+    </div>
+    <div class="section-head"><h2>All classes</h2><span class="count-pill" id="historyCount"></span></div>
+    <div id="historyList"></div>
+  </section>
+
+  <section id="view-summary" style="display:none">
+    <div class="stats" id="statCards"></div>
+    <div class="card">
+      <div class="groupbar">
+        <span class="lab">Break down by</span>
+        <div class="seg" id="groupSeg">
+          <button data-g="level" class="on">Level / type</button>
+          <button data-g="instructor">Instructor</button>
+          <button data-g="studio">Studio</button>
+          <button data-g="month">Month</button>
+        </div>
+      </div>
+      <div id="summaryTable"></div>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <h3>Sync with GitHub</h3>
+    <p class="sub">Store your journal in your own private GitHub repo so it syncs across devices — automatically, every time you save. Everything stays yours.</p>
+    <div class="steps">
+      <b>One-time setup:</b><br>
+      1. Create a <b>private</b> repo (e.g. <code>dance-journal-data</code>).<br>
+      2. On GitHub: Settings → Developer settings → <b>Fine-grained tokens</b> → Generate. Give it access to <b>only that repo</b>, with <b>Contents: Read and write</b>.<br>
+      3. Paste your details below. The token is stored only in this browser and never leaves it except to talk to GitHub.
+      <br><a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">Open token settings →</a>
+    </div>
+    <div class="field"><label for="cfg-owner">GitHub username</label><input type="text" id="cfg-owner" placeholder="your-username" autocomplete="off"></div>
+    <div class="field"><label for="cfg-repo">Private data repo name</label><input type="text" id="cfg-repo" placeholder="dance-journal-data" autocomplete="off"></div>
+    <div class="field"><label for="cfg-path">File name</label><input type="text" id="cfg-path" placeholder="entries.json" autocomplete="off"></div>
+    <div class="field"><label for="cfg-token">Fine-grained token</label><input type="text" id="cfg-token" placeholder="github_pat_…" autocomplete="off"></div>
+    <div class="status-line" id="cfgStatus"></div>
+    <div class="row">
+      <button class="btn tiny danger" id="disconnectBtn" style="display:none">Disconnect</button>
+      <div style="display:flex;gap:10px;margin-left:auto">
+        <button class="btn" id="settingsClose">Close</button>
+        <button class="btn primary" id="connectBtn">Connect &amp; sync</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ keys & helpers ============ */
+const CACHE_KEY="dance-journal-entries", CFG_KEY="dj-config", SHA_KEY="dj-sha", PENDING_KEY="dj-pending", LEVELS_KEY="dj-levels";
+const STARTER_LEVELS=["Beginner","Intermediate","Advanced","Pointe","Variations","Repertoire","Conditioning","Open"];
+const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+const LS=(function(){try{localStorage.setItem("__t","1");localStorage.removeItem("__t");return true;}catch(e){return false;}})();
+let MEM={};
+function lsGet(k){ if(LS){try{return localStorage.getItem(k);}catch(e){}} return MEM[k]??null; }
+function lsSet(k,v){ MEM[k]=v; if(LS){try{localStorage.setItem(k,v);}catch(e){}} }
+function lsDel(k){ delete MEM[k]; if(LS){try{localStorage.removeItem(k);}catch(e){}} }
+
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const esc=s=>(s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function fmtLen(min){min=Number(min)||0;const h=Math.floor(min/60),m=min%60;if(h&&m)return h+"h "+m+"m";if(h)return h+"h";return m+"m";}
+function parseDate(s){const [y,mo,d]=(s||"").split("-").map(Number);return {y,mo:mo-1,d};}
+function showMode(msg){const n=$("#modenote");n.textContent=msg;n.classList.add("show");}
+
+/* ============ state ============ */
+let entries=[], editingId=null, energyVal=0, groupBy="level", storageOK=true, syncState="local";
+
+/* ============ markdown (self-contained, offline) ============ */
+function mdInline(s){
+  const codes=[];
+  s=s.replace(/`([^`]+)`/g,(m,c)=>{codes.push(c);return "\u0000C"+(codes.length-1)+"\u0000";});
+  s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(m,t,u)=>'<a href="'+u+'" target="_blank" rel="noopener">'+t+'</a>');
+  s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/__([^_]+)__/g,"<strong>$1</strong>");
+  s=s.replace(/(^|[^*])\*([^*\n]+)\*/g,"$1<em>$2</em>").replace(/(^|[^_\w])_([^_\n]+)_/g,"$1<em>$2</em>");
+  s=s.replace(/\u0000C(\d+)\u0000/g,(m,i)=>"<code>"+codes[+i]+"</code>");
+  return s;
+}
+function mdToHtml(src){
+  if(!src) return "";
+  src=esc(src.replace(/\r\n?/g,"\n"));
+  const blocks=[];
+  src=src.replace(/```([\s\S]*?)```/g,(m,c)=>{blocks.push(c.replace(/^\n/,"").replace(/\n$/,""));return "\u0000B"+(blocks.length-1)+"\u0000";});
+  const lines=src.split("\n"); let html="", i=0, para=[];
+  const flush=()=>{ if(para.length){ html+="<p>"+para.map(mdInline).join("<br>")+"</p>"; para=[]; } };
+  while(i<lines.length){
+    const line=lines[i];
+    const bm=line.match(/^\u0000B(\d+)\u0000$/);
+    if(bm){ flush(); html+="<pre><code>"+blocks[+bm[1]]+"</code></pre>"; i++; continue; }
+    if(/^\s*$/.test(line)){ flush(); i++; continue; }
+    const h=line.match(/^(#{1,6})\s+(.*)$/);
+    if(h){ flush(); const lv=Math.min(h[1].length,4); html+="<h"+lv+">"+mdInline(h[2])+"</h"+lv+">"; i++; continue; }
+    if(/^(-{3,}|\*{3,}|_{3,})\s*$/.test(line)){ flush(); html+="<hr>"; i++; continue; }
+    if(/^\s*&gt;\s?/.test(line)){ flush(); const q=[]; while(i<lines.length&&/^\s*&gt;\s?/.test(lines[i])){q.push(lines[i].replace(/^\s*&gt;\s?/,""));i++;} html+="<blockquote>"+q.map(mdInline).join("<br>")+"</blockquote>"; continue; }
+    if(/^\s*[-*+]\s+/.test(line)){ flush(); const it=[]; while(i<lines.length&&/^\s*[-*+]\s+/.test(lines[i])){it.push(lines[i].replace(/^\s*[-*+]\s+/,""));i++;} html+="<ul>"+it.map(x=>"<li>"+mdInline(x)+"</li>").join("")+"</ul>"; continue; }
+    if(/^\s*\d+\.\s+/.test(line)){ flush(); const it=[]; while(i<lines.length&&/^\s*\d+\.\s+/.test(lines[i])){it.push(lines[i].replace(/^\s*\d+\.\s+/,""));i++;} html+="<ol>"+it.map(x=>"<li>"+mdInline(x)+"</li>").join("")+"</ol>"; continue; }
+    para.push(line); i++;
+  }
+  flush();
+  return html;
+}
+
+/* ============ base64 (utf-8 safe) ============ */
+function b64encode(str){ const b=new TextEncoder().encode(str); let s=""; b.forEach(x=>s+=String.fromCharCode(x)); return btoa(s); }
+function b64decode(b64){ const bin=atob(b64); const b=Uint8Array.from(bin,c=>c.charCodeAt(0)); return new TextDecoder().decode(b); }
+
+/* ============ config / GitHub ============ */
+function loadCfg(){ try{return JSON.parse(lsGet(CFG_KEY)||"null");}catch(e){return null;} }
+let cfg=loadCfg();
+function connected(){ return !!(cfg&&cfg.owner&&cfg.repo&&cfg.token); }
+function ghUrl(){ return "https://api.github.com/repos/"+cfg.owner+"/"+cfg.repo+"/contents/"+(cfg.path||"entries.json"); }
+async function ghGet(){
+  const r=await fetch(ghUrl(),{headers:{Authorization:"Bearer "+cfg.token,Accept:"application/vnd.github+json"}});
+  if(r.status===404) return {list:[],sha:null};
+  if(!r.ok) throw new Error("GitHub read failed ("+r.status+")");
+  const j=await r.json();
+  let list=[]; try{ list=JSON.parse(b64decode((j.content||"").replace(/\n/g,""))); }catch(e){ list=[]; }
+  return {list:Array.isArray(list)?list:[], sha:j.sha};
+}
+async function ghPut(list,sha){
+  const body={message:"Update journal — "+new Date().toISOString(), content:b64encode(JSON.stringify(list,null,2))};
+  if(sha) body.sha=sha;
+  const r=await fetch(ghUrl(),{method:"PUT",headers:{Authorization:"Bearer "+cfg.token,Accept:"application/vnd.github+json","Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error("GitHub write failed ("+r.status+")");
+  const j=await r.json();
+  return j.content.sha;
+}
+
+/* ============ sync orchestration ============ */
+function setSync(s){ syncState=s; renderSyncBadge(); }
+function renderSyncBadge(){
+  const el=$("#syncBadge"); if(!el) return;
+  const map={local:["●","Local only"],syncing:["◐","Syncing…"],synced:["●","Synced"],offline:["●","Offline — will sync"],error:["●","Sync error — check settings"]};
+  const [dot,label]=map[syncState]||map.local;
+  el.innerHTML='<span class="sdot '+syncState+'">'+dot+'</span>'+label;
+}
+async function pushNow(){
+  if(!connected()) return;
+  setSync("syncing"); lsSet(PENDING_KEY,"1");
+  try{
+    let sha=lsGet(SHA_KEY)||null;
+    try{ sha=await ghPut(entries,sha); }
+    catch(e){ const cur=await ghGet(); sha=await ghPut(entries,cur.sha); }
+    lsSet(SHA_KEY,sha); lsDel(PENDING_KEY); setSync("synced");
+  }catch(e){ setSync("offline"); }
+}
+async function syncOnOpen(){
+  if(!connected()){ setSync("local"); return; }
+  if(lsGet(PENDING_KEY)){ await pushNow(); return; }
+  setSync("syncing");
+  try{
+    const {list,sha}=await ghGet();
+    entries=list; lsSet(SHA_KEY,sha||""); persistLocal(); renderAll(); setSync("synced");
+  }catch(e){ setSync("offline"); }
+}
+async function initialSync(){
+  setSync("syncing");
+  try{
+    const {list,sha}=await ghGet();
+    if(sha===null){ const ns=await ghPut(entries,null); lsSet(SHA_KEY,ns); lsDel(PENDING_KEY); setSync("synced"); }
+    else if(list.length===0 && entries.length>0){ const ns=await ghPut(entries,sha); lsSet(SHA_KEY,ns); lsDel(PENDING_KEY); setSync("synced"); }
+    else { entries=list; lsSet(SHA_KEY,sha); persistLocal(); renderAll(); setSync("synced"); }
+    return true;
+  }catch(e){ setSync("error"); throw e; }
+}
+
+/* ============ persistence ============ */
+function persistLocal(){ lsSet(CACHE_KEY, JSON.stringify(entries)); }
+async function persist(){ persistLocal(); if(connected()) await pushNow(); }
+function loadLocal(){ if(LS){ try{return JSON.parse(lsGet(CACHE_KEY)||"[]");}catch(e){return [];} } storageOK=false; return []; }
+
+/* ============ level options ============ */
+function customLevels(){ try{return JSON.parse(lsGet(LEVELS_KEY)||"[]");}catch(e){return [];} }
+function addCustomLevel(v){ const c=customLevels(); if(!c.includes(v)){ c.push(v); lsSet(LEVELS_KEY,JSON.stringify(c)); } }
+function levelOptions(){ return [...new Set([...STARTER_LEVELS,...customLevels(),...entries.map(e=>e.level).filter(Boolean)])]; }
+function populateLevelSelect(selected){
+  const sel=$("#f-level");
+  const opts=levelOptions();
+  sel.innerHTML='<option value="">—</option>'+opts.map(v=>'<option'+(v===selected?' selected':'')+'>'+esc(v)+'</option>').join('')+'<option value="__add__">＋ Add new…</option>';
+  if(selected) sel.value=selected;
+}
+
+/* ============ entry rendering ============ */
+function entryRow(e){
+  const {mo,d}=parseDate(e.date);
+  const meta=[];
+  if(e.level) meta.push('<span class="chip lvl">'+esc(e.level)+'</span>');
+  if(e.instructor) meta.push('<span class="chip">'+esc(e.instructor)+'</span>');
+  if(e.energy) meta.push('<span class="chip">energy '+e.energy+'/5</span>');
+  return '<div class="entry" data-id="'+e.id+'">'
+    +'<div class="entry-main" data-toggle>'
+    +'<div class="entry-date"><div class="d">'+(d||"–")+'</div><div class="m">'+(MONTHS[mo]||"")+'</div></div>'
+    +'<div class="entry-body"><div class="studio">'+(esc(e.studio)||"<span style=\"color:var(--faint)\">Untitled studio</span>")+'</div>'
+    +'<div class="entry-meta">'+meta.join("")+'</div></div>'
+    +'<div class="entry-len">'+fmtLen(e.minutes)+'</div><div class="caret">▶</div></div>'
+    +'<div class="entry-detail">'
+    +(e.notes?'<div class="md">'+mdToHtml(e.notes)+'</div>':'<p class="no-notes">No notes for this class.</p>')
+    +'<div class="detail-actions"><button class="btn tiny" data-edit="'+e.id+'">Edit</button>'
+    +'<button class="btn tiny danger" data-del="'+e.id+'">Delete</button></div></div></div>';
+}
+function wireEntryList(c){
+  c.querySelectorAll("[data-toggle]").forEach(el=>el.addEventListener("click",()=>el.closest(".entry").classList.toggle("open")));
+  c.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();startEdit(b.dataset.edit);}));
+  c.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",async e=>{
+    e.stopPropagation();
+    if(confirm("Delete this class entry? This can’t be undone.")){ entries=entries.filter(x=>x.id!==b.dataset.del); await persist(); renderAll(); }
+  }));
+}
+const byDateDesc=(a,b)=>(b.date||"").localeCompare(a.date||"")||(b.id>a.id?1:-1);
+
+/* ============ views ============ */
+function renderRecent(){
+  const list=[...entries].sort(byDateDesc).slice(0,5), c=$("#recentList");
+  $("#recentCount").textContent=entries.length?entries.length+" total":"";
+  if(!entries.length){ c.innerHTML='<div class="empty"><div class="fig">plié</div><p>Your journal is empty. Log your first class above — the more you record, the more your summary comes alive.</p></div>'; return; }
+  c.innerHTML=list.map(entryRow).join(""); wireEntryList(c);
+}
+function distinct(f){ return [...new Set(entries.map(e=>e[f]).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
+function fillFilter(sel,f,all){ const cur=$(sel).value; $(sel).innerHTML='<option value="">'+all+'</option>'+distinct(f).map(v=>'<option'+(v===cur?' selected':'')+'>'+esc(v)+'</option>').join(''); }
+function refreshLists(){
+  $("#dl-studio").innerHTML=distinct("studio").map(v=>'<option value="'+esc(v)+'">').join("");
+  $("#dl-instructor").innerHTML=distinct("instructor").map(v=>'<option value="'+esc(v)+'">').join("");
+  fillFilter("#filterStudio","studio","All studios");
+  fillFilter("#filterLevel","level","All levels / types");
+  fillFilter("#filterInstructor","instructor","All instructors");
+}
+function renderHistory(){
+  const q=($("#searchBox").value||"").toLowerCase().trim();
+  const fs=$("#filterStudio").value,fl=$("#filterLevel").value,fi=$("#filterInstructor").value;
+  const list=[...entries].sort(byDateDesc).filter(e=>{
+    if(fs&&e.studio!==fs)return false; if(fl&&e.level!==fl)return false; if(fi&&e.instructor!==fi)return false;
+    if(q){ const hay=[e.studio,e.level,e.instructor,e.notes,e.date].join(" ").toLowerCase(); if(!hay.includes(q))return false; }
+    return true;
+  });
+  $("#historyCount").textContent=list.length+(list.length===1?" class":" classes");
+  const c=$("#historyList");
+  if(!list.length){ c.innerHTML='<div class="empty"><p>No classes match your filters.</p></div>'; return; }
+  c.innerHTML=list.map(entryRow).join(""); wireEntryList(c);
+}
+function monthKey(s){ if(s==="No date")return -1; const [mn,yr]=s.split(" "); return Number(yr)*12+MONTHS.indexOf(mn); }
+function renderSummary(){
+  const total=entries.length, totalMin=entries.reduce((s,e)=>s+(Number(e.minutes)||0),0), now=new Date();
+  const thisMonth=entries.filter(e=>{const p=parseDate(e.date);return p.y===now.getFullYear()&&p.mo===now.getMonth();}).length;
+  const avg=total?Math.round(totalMin/total):0;
+  $("#statCards").innerHTML=
+    '<div class="stat"><div class="n">'+total+'</div><div class="l">Classes logged</div></div>'+
+    '<div class="stat"><div class="n">'+(totalMin/60).toFixed(1)+'<small> h</small></div><div class="l">Total time</div></div>'+
+    '<div class="stat"><div class="n">'+thisMonth+'</div><div class="l">This month</div></div>'+
+    '<div class="stat"><div class="n">'+fmtLen(avg)+'</div><div class="l">Avg length</div></div>';
+  const groups={};
+  for(const e of entries){
+    let k; if(groupBy==="month"){const p=parseDate(e.date);k=p.y?MONTHS[p.mo]+" "+p.y:"No date";} else k=e[groupBy]||"—";
+    if(!groups[k])groups[k]={key:k,count:0,min:0}; groups[k].count++; groups[k].min+=Number(e.minutes)||0;
+  }
+  let rows=Object.values(groups);
+  if(groupBy==="month") rows.sort((a,b)=>monthKey(b.key)-monthKey(a.key)); else rows.sort((a,b)=>b.min-a.min||b.count-a.count);
+  const maxMin=Math.max(1,...rows.map(r=>r.min)), box=$("#summaryTable");
+  if(!total){ box.innerHTML='<div class="empty"><p>Log a few classes and this is where the patterns show up — hours per level, your most-danced-with instructors, month by month.</p></div>'; return; }
+  const head=groupBy==="level"?"Level / type":groupBy[0].toUpperCase()+groupBy.slice(1);
+  box.innerHTML='<table class="summary"><thead><tr><th>'+head+'</th><th class="bar-cell">Share of time</th><th class="num">Classes</th><th class="num">Time</th></tr></thead><tbody>'
+    +rows.map(r=>'<tr><td><span class="gname">'+esc(r.key)+'<span class="sub">'+(r.min/60).toFixed(1)+' h · '+Math.round(r.min/maxMin*100)+'% of tracked time</span></span></td>'
+    +'<td class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(2,r.min/maxMin*100)+'%"></div></div></td>'
+    +'<td class="num">'+r.count+'</td><td class="num">'+fmtLen(r.min)+'</td></tr>').join("")+'</tbody></table>';
+}
+function renderAll(){ refreshLists(); populateLevelSelect($("#f-level").value); renderRecent(); renderHistory(); renderSummary(); }
+
+/* ============ form ============ */
+function setMinChips(v){ $$("#minChips .chip-btn").forEach(b=>b.classList.toggle("on",Number(b.dataset.min)===Number(v))); }
+function paintEnergy(){ $$("#f-energy .dot").forEach(d=>d.classList.toggle("on",Number(d.dataset.v)<=energyVal)); }
+function resetForm(){
+  editingId=null; energyVal=0;
+  $("#f-date").value=new Date().toISOString().slice(0,10);
+  ["f-studio","f-instructor","f-minutes","f-notes"].forEach(id=>$("#"+id).value="");
+  populateLevelSelect(""); $("#levelAdd").style.display="none";
+  setMinChips(null); paintEnergy();
+  $("#formEyebrow").textContent="New entry"; $("#formTitle").textContent="What did you dance today?";
+  $("#saveBtn").textContent="Save class"; $("#cancelEdit").style.display="none";
+}
+function startEdit(id){
+  const e=entries.find(x=>x.id===id); if(!e)return;
+  editingId=id;
+  $("#f-date").value=e.date||""; $("#f-studio").value=e.studio||""; $("#f-instructor").value=e.instructor||"";
+  $("#f-minutes").value=e.minutes||""; $("#f-notes").value=e.notes||"";
+  populateLevelSelect(e.level||""); setMinChips(e.minutes); energyVal=e.energy||0; paintEnergy();
+  $("#formEyebrow").textContent="Editing entry"; $("#formTitle").textContent="Update this class";
+  $("#saveBtn").textContent="Update class"; $("#cancelEdit").style.display="inline-block";
+  switchView("log"); window.scrollTo({top:0,behavior:"smooth"});
+}
+async function saveEntry(){
+  const date=$("#f-date").value;
+  if(!date){ alert("Please choose a date — it’s the only required field."); return; }
+  const rec={ id:editingId||String(Date.now()), date,
+    studio:$("#f-studio").value.trim(), level:$("#f-level").value===("__add__")?"":$("#f-level").value,
+    instructor:$("#f-instructor").value.trim(),
+    minutes:$("#f-minutes").value?Number($("#f-minutes").value):0, energy:energyVal, notes:$("#f-notes").value.trim() };
+  if(editingId) entries=entries.map(x=>x.id===editingId?rec:x); else entries.push(rec);
+  await persist(); resetForm(); renderAll();
+  const n=$("#saveNote"); n.classList.add("show"); setTimeout(()=>n.classList.remove("show"),1600);
+}
+
+/* ============ import / export ============ */
+function download(name,text,type){ const b=new Blob([text],{type}),u=URL.createObjectURL(b),a=document.createElement("a"); a.href=u;a.download=name;a.click();URL.revokeObjectURL(u); }
+function exportJson(){ download("dance-journal-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(entries,null,2),"application/json"); }
+function exportCsv(){
+  const cols=["date","studio","level","instructor","minutes","energy","notes"], q=v=>'"'+(v??"").toString().replace(/"/g,'""')+'"';
+  const rows=[cols.join(",")].concat([...entries].sort(byDateDesc).map(e=>cols.map(c=>q(e[c])).join(",")));
+  download("dance-journal-"+new Date().toISOString().slice(0,10)+".csv",rows.join("\n"),"text/csv");
+}
+function importJson(file){
+  const r=new FileReader();
+  r.onload=async()=>{ try{
+    const data=JSON.parse(r.result); if(!Array.isArray(data))throw new Error("bad");
+    const byId={}; [...entries,...data].forEach(e=>{ if(e&&e.id)byId[e.id]=e; });
+    entries=Object.values(byId); await persist(); renderAll();
+    alert("Imported. You now have "+entries.length+" classes.");
+  }catch(err){ alert("That file didn’t look like a Dance Journal export."); } };
+  r.readAsText(file);
+}
+
+/* ============ settings ============ */
+function openSettings(){
+  $("#cfg-owner").value=cfg?.owner||""; $("#cfg-repo").value=cfg?.repo||"";
+  $("#cfg-path").value=cfg?.path||"entries.json"; $("#cfg-token").value=cfg?.token||"";
+  $("#cfgStatus").textContent=""; $("#disconnectBtn").style.display=connected()?"inline-block":"none";
+  $("#settingsOverlay").classList.add("show");
+}
+function closeSettings(){ $("#settingsOverlay").classList.remove("show"); }
+async function connect(){
+  const owner=$("#cfg-owner").value.trim(), repo=$("#cfg-repo").value.trim(), path=$("#cfg-path").value.trim()||"entries.json", token=$("#cfg-token").value.trim();
+  if(!owner||!repo||!token){ $("#cfgStatus").innerHTML='<span style="color:#b4453f">Fill in username, repo, and token.</span>'; return; }
+  cfg={owner,repo,path,token}; $("#cfgStatus").textContent="Connecting…";
+  try{ await initialSync(); lsSet(CFG_KEY,JSON.stringify(cfg)); $("#cfgStatus").innerHTML='<span style="color:#3f7d54">Connected and synced.</span>'; $("#disconnectBtn").style.display="inline-block"; setTimeout(closeSettings,800); }
+  catch(e){ cfg=loadCfg(); $("#cfgStatus").innerHTML='<span style="color:#b4453f">'+esc(e.message)+' — check the repo name and token access.</span>'; }
+}
+function disconnect(){
+  if(!confirm("Disconnect GitHub sync? Your entries stay saved on this device; they just won’t sync until you reconnect.")) return;
+  cfg=null; lsDel(CFG_KEY); lsDel(SHA_KEY); lsDel(PENDING_KEY); setSync("local"); closeSettings();
+}
+
+/* ============ nav ============ */
+function switchView(v){
+  $$(".tab").forEach(t=>t.classList.toggle("active",t.dataset.view===v));
+  $("#view-log").style.display=v==="log"?"block":"none";
+  $("#view-history").style.display=v==="history"?"block":"none";
+  $("#view-summary").style.display=v==="summary"?"block":"none";
+}
+
+/* ============ init ============ */
+(function init(){
+  $$(".tab").forEach(t=>t.addEventListener("click",()=>switchView(t.dataset.view)));
+  $("#saveBtn").addEventListener("click",saveEntry);
+  $("#cancelEdit").addEventListener("click",resetForm);
+  $$("#f-energy .dot").forEach(d=>d.addEventListener("click",()=>{energyVal=(energyVal===Number(d.dataset.v))?0:Number(d.dataset.v);paintEnergy();}));
+  $$("#minChips .chip-btn").forEach(b=>b.addEventListener("click",()=>{$("#f-minutes").value=b.dataset.min;setMinChips(b.dataset.min);}));
+  $("#f-minutes").addEventListener("input",()=>setMinChips($("#f-minutes").value));
+  $("#f-level").addEventListener("change",function(){
+    if(this.value==="__add__"){ $("#levelAdd").style.display="flex"; $("#f-level-new").focus(); }
+    else $("#levelAdd").style.display="none";
+  });
+  $("#levelConfirm").addEventListener("click",()=>{
+    const v=$("#f-level-new").value.trim(); if(!v)return;
+    addCustomLevel(v); $("#f-level-new").value=""; $("#levelAdd").style.display="none"; populateLevelSelect(v);
+  });
+  $("#levelCancel").addEventListener("click",()=>{ $("#f-level-new").value=""; $("#levelAdd").style.display="none"; populateLevelSelect(""); });
+  ["searchBox","filterStudio","filterLevel","filterInstructor"].forEach(id=>$("#"+id).addEventListener("input",renderHistory));
+  $("#groupSeg").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{groupBy=b.dataset.g;$("#groupSeg").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));renderSummary();}));
+  $("#exportJson").addEventListener("click",exportJson);
+  $("#exportCsv").addEventListener("click",exportCsv);
+  $("#importBtn").addEventListener("click",()=>$("#importFile").click());
+  $("#importFile").addEventListener("change",e=>{ if(e.target.files[0])importJson(e.target.files[0]); e.target.value=""; });
+  $("#settingsBtn").addEventListener("click",openSettings);
+  $("#settingsClose").addEventListener("click",closeSettings);
+  $("#connectBtn").addEventListener("click",connect);
+  $("#disconnectBtn").addEventListener("click",disconnect);
+  $("#syncBadge").addEventListener("click",()=>{ if(connected())syncOnOpen(); else openSettings(); });
+  $("#settingsOverlay").addEventListener("click",e=>{ if(e.target.id==="settingsOverlay")closeSettings(); });
+
+  entries=loadLocal();
+  resetForm(); renderAll();
+  if(!storageOK) showMode("You’re in a preview, so entries won’t be kept here. Download this file and open it in your own browser to save a permanent journal — then connect GitHub in Settings to sync across devices.");
+  renderSyncBadge();
+  if(connected()) syncOnOpen(); else setSync("local");
+})();
+</script>
