@@ -8,6 +8,7 @@
   :root{
     --paper:#F5F4F0; --card:#FFFFFF; --ink:#211D1B; --muted:#6E6862; --faint:#9A938C;
     --line:#E4DFD7; --accent:#4A2540; --accent-soft:#8E5C7E; --accent-wash:#EFE6EC; --gold:#A98B4E;
+    --heat0:#ECE7E1; --heat1:#E6CFE0; --heat2:#C999BC; --heat3:#8E5C7E; --heat4:#4A2540;
     --radius:10px;
     --serif:"Fraunces","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
     --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
@@ -52,7 +53,7 @@
 
   .form-title{font-family:var(--serif);font-size:22px;font-weight:500;margin:2px 0 18px}
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 18px}
-  .field{display:flex;flex-direction:column;gap:6px}
+  .field{display:flex;flex-direction:column;gap:6px;min-width:0}
   .field.full{grid-column:1/-1}
   label{font-size:12px;font-weight:600;letter-spacing:.03em;color:var(--muted)}
   label .req{color:var(--accent-soft);font-weight:600}
@@ -61,6 +62,7 @@
   textarea{resize:vertical;min-height:120px;line-height:1.55;font-family:var(--sans)}
   .hint{font-size:11px;color:var(--faint)}
   select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%239A938C' stroke-width='1.5'/></svg>");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
+  input[type=date]{min-width:0;max-width:100%;-webkit-appearance:none;appearance:none}
 
   .level-add{display:flex;gap:8px;margin-top:8px}
   .level-add input{flex:1}
@@ -129,7 +131,7 @@
 
   .groupbar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
   .groupbar .lab{font-size:12px;color:var(--muted);font-weight:600}
-  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden}
   .seg button{appearance:none;border:none;background:var(--card);cursor:pointer;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--muted);padding:7px 13px;border-right:1px solid var(--line)}
   .seg button:last-child{border-right:none}
   .seg button.on{background:var(--accent);color:#fff}
@@ -162,6 +164,30 @@
   .steps a{color:var(--accent)}
   .status-line{font-size:12.5px;margin-top:10px}
 
+  /* heatmap */
+  .heat-section{margin-bottom:22px}
+  .heat-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  .heat-head h3{font-family:var(--serif);font-weight:500;font-size:16px;margin:0}
+  .heat-head .sub{font-size:12px;color:var(--faint)}
+  .heat-scroll{overflow-x:auto;padding-bottom:4px}
+  .heat-grid{display:inline-flex;gap:3px}
+  .heat-col{display:flex;flex-direction:column;gap:3px}
+  .heat-mon{height:13px;font-size:10px;color:var(--faint);line-height:13px;white-space:nowrap}
+  .heat-cell{width:12px;height:12px;border-radius:3px;background:var(--heat0);flex:none}
+  .heat-legend{display:flex;align-items:center;gap:5px;justify-content:flex-end;margin-top:8px;font-size:11px;color:var(--faint)}
+  .heat-legend .heat-cell{width:11px;height:11px}
+
+  /* notes feed */
+  .note-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);margin-bottom:12px;overflow:hidden}
+  .note-head{display:flex;align-items:center;gap:10px;padding:13px 16px 2px;cursor:pointer}
+  .note-head .nd{font-family:var(--serif);font-size:15px;font-weight:600}
+  .note-head .caret{margin-left:auto;color:var(--faint);font-size:12px;transition:transform .18s}
+  .note-body{padding:4px 16px 16px}
+  .note-detail{display:none;border-top:1px solid var(--line);padding:12px 16px}
+  .note-card.open .note-detail{display:block}
+  .note-card.open .note-head .caret{transform:rotate(90deg)}
+  .note-meta{display:flex;gap:8px;flex-wrap:wrap}
+
   @media(max-width:640px){
     .grid{grid-template-columns:1fr}
     .stats{grid-template-columns:repeat(2,1fr)}
@@ -175,7 +201,6 @@
     <div class="brand">
       <div>
         <h1>Dance <em>Journal</em></h1>
-        <div class="tagline">A practice journal for every class you take.</div>
       </div>
       <div class="io">
         <span id="syncBadge" title="Sync status"></span>
@@ -192,6 +217,7 @@
   <nav class="tabs">
     <button class="tab active" data-view="log">Log a class</button>
     <button class="tab" data-view="history">History</button>
+    <button class="tab" data-view="notes">Notes</button>
     <button class="tab" data-view="summary">Summary</button>
   </nav>
 
@@ -256,11 +282,6 @@
         <span class="save-note" id="saveNote">Saved ✓</span>
       </div>
     </div>
-
-    <div style="margin-top:26px">
-      <div class="section-head"><h2>Recent</h2><span class="count-pill" id="recentCount"></span></div>
-      <div id="recentList"></div>
-    </div>
   </section>
 
   <section id="view-history" style="display:none">
@@ -274,13 +295,23 @@
     <div id="historyList"></div>
   </section>
 
+  <section id="view-notes" style="display:none">
+    <div class="section-head"><h2>Notes</h2><span class="count-pill" id="notesCount"></span></div>
+    <div id="notesList"></div>
+  </section>
+
   <section id="view-summary" style="display:none">
+    <div class="heat-section" id="heatmap">
+      <div class="heat-head"><h3>Activity</h3><span class="sub heat-sub"></span></div>
+      <div class="heat-scroll"></div>
+      <div class="heat-legend">Less <span class="heat-cell" style="background:var(--heat0)"></span><span class="heat-cell" style="background:var(--heat1)"></span><span class="heat-cell" style="background:var(--heat2)"></span><span class="heat-cell" style="background:var(--heat3)"></span><span class="heat-cell" style="background:var(--heat4)"></span> More</div>
+    </div>
     <div class="stats" id="statCards"></div>
     <div class="card">
       <div class="groupbar">
         <span class="lab">Break down by</span>
         <div class="seg" id="groupSeg">
-          <button data-g="level" class="on">Level / type</button>
+          <button data-g="level" class="on">Level</button>
           <button data-g="instructor">Instructor</button>
           <button data-g="studio">Studio</button>
           <button data-g="month">Month</button>
@@ -320,7 +351,7 @@
 <script>
 /* ============ keys & helpers ============ */
 const CACHE_KEY="dance-journal-entries", CFG_KEY="dj-config", SHA_KEY="dj-sha", PENDING_KEY="dj-pending", LEVELS_KEY="dj-levels";
-const STARTER_LEVELS=["Beginner","Intermediate","Advanced","Pointe","Variations","Repertoire","Conditioning","Open"];
+const STARTER_LEVELS=["Intro","Basic Beginner","Beginner","Advanced Beginner","Beg Contemporary","Floor Barre","Pointe","Chinese Dance - 基训"];
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 const LS=(function(){try{localStorage.setItem("__t","1");localStorage.removeItem("__t");return true;}catch(e){return false;}})();
@@ -458,14 +489,14 @@ function entryRow(e){
   const meta=[];
   if(e.level) meta.push('<span class="chip lvl">'+esc(e.level)+'</span>');
   if(e.instructor) meta.push('<span class="chip">'+esc(e.instructor)+'</span>');
-  if(e.energy) meta.push('<span class="chip">energy '+e.energy+'/5</span>');
+  const detailMeta = e.energy ? '<div class="note-meta" style="margin-bottom:12px"><span class="chip">energy '+e.energy+'/5</span></div>' : '';
   return '<div class="entry" data-id="'+e.id+'">'
     +'<div class="entry-main" data-toggle>'
     +'<div class="entry-date"><div class="d">'+(d||"–")+'</div><div class="m">'+(MONTHS[mo]||"")+'</div></div>'
     +'<div class="entry-body"><div class="studio">'+(esc(e.studio)||"<span style=\"color:var(--faint)\">Untitled studio</span>")+'</div>'
     +'<div class="entry-meta">'+meta.join("")+'</div></div>'
     +'<div class="entry-len">'+fmtLen(e.minutes)+'</div><div class="caret">▶</div></div>'
-    +'<div class="entry-detail">'
+    +'<div class="entry-detail">'+detailMeta
     +(e.notes?'<div class="md">'+mdToHtml(e.notes)+'</div>':'<p class="no-notes">No notes for this class.</p>')
     +'<div class="detail-actions"><button class="btn tiny" data-edit="'+e.id+'">Edit</button>'
     +'<button class="btn tiny danger" data-del="'+e.id+'">Delete</button></div></div></div>';
@@ -481,11 +512,58 @@ function wireEntryList(c){
 const byDateDesc=(a,b)=>(b.date||"").localeCompare(a.date||"")||(b.id>a.id?1:-1);
 
 /* ============ views ============ */
-function renderRecent(){
-  const list=[...entries].sort(byDateDesc).slice(0,5), c=$("#recentList");
-  $("#recentCount").textContent=entries.length?entries.length+" total":"";
-  if(!entries.length){ c.innerHTML='<div class="empty"><div class="fig">plié</div><p>Your journal is empty. Log your first class above — the more you record, the more your summary comes alive.</p></div>'; return; }
-  c.innerHTML=list.map(entryRow).join(""); wireEntryList(c);
+function isoDate(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
+function renderHeatmap(){
+  const box=$("#heatmap"); if(!box) return;
+  const scroll=box.querySelector(".heat-scroll"), sub=box.querySelector(".heat-sub");
+  if(!entries.length){ scroll.innerHTML=""; sub.textContent=""; return; }
+  const count={}; entries.forEach(e=>{ if(e.date) count[e.date]=(count[e.date]||0)+1; });
+  const today=new Date(); today.setHours(0,0,0,0);
+  const start=new Date(today); start.setDate(today.getDate()-today.getDay()-51*7);
+  const cols=[]; let prevMon=-1, total=0; const cur=new Date(start);
+  while(cur<=today){
+    const col={mon:"",cells:[]}, m=cur.getMonth();
+    if(m!==prevMon){ col.mon=MONTHS[m]; prevMon=m; }
+    for(let dow=0; dow<7; dow++){
+      if(cur>today){ col.cells.push(null); }
+      else{ const ds=isoDate(cur), c=count[ds]||0; total+=c; col.cells.push({ds,c}); }
+      cur.setDate(cur.getDate()+1);
+    }
+    cols.push(col);
+  }
+  const lvl=c=>c>=4?4:c;
+  scroll.innerHTML='<div class="heat-grid">'+cols.map(col=>
+    '<div class="heat-col"><div class="heat-mon">'+(col.mon||"")+'</div>'+
+    col.cells.map(cell=> cell===null?'<div class="heat-cell" style="visibility:hidden"></div>'
+      :'<div class="heat-cell" style="background:var(--heat'+lvl(cell.c)+')" title="'+cell.c+(cell.c===1?' class':' classes')+' · '+cell.ds+'"></div>').join("")+
+    '</div>').join("")+'</div>';
+  sub.textContent=total+(total===1?" class":" classes")+" in the last year";
+  scroll.scrollLeft=scroll.scrollWidth;
+}
+function noteCard(e){
+  const {y,mo,d}=parseDate(e.date);
+  const dateStr=(MONTHS[mo]||"")+" "+(d||"")+", "+(y||"");
+  const meta=[];
+  if(e.level) meta.push('<span class="chip lvl">'+esc(e.level)+'</span>');
+  if(e.studio) meta.push('<span class="chip">'+esc(e.studio)+'</span>');
+  if(e.instructor) meta.push('<span class="chip">'+esc(e.instructor)+'</span>');
+  if(e.minutes) meta.push('<span class="chip">'+fmtLen(e.minutes)+'</span>');
+  if(e.energy) meta.push('<span class="chip">energy '+e.energy+'/5</span>');
+  return '<div class="note-card" data-id="'+e.id+'">'
+    +'<div class="note-head" data-toggle><span class="nd">'+dateStr+'</span><span class="caret">▶</span></div>'
+    +'<div class="note-body md">'+mdToHtml(e.notes)+'</div>'
+    +'<div class="note-detail"><div class="note-meta">'+meta.join("")+'</div>'
+    +'<div class="detail-actions"><button class="btn tiny" data-edit="'+e.id+'">Edit</button>'
+    +'<button class="btn tiny danger" data-del="'+e.id+'">Delete</button></div></div></div>';
+}
+function renderNotes(){
+  const list=[...entries].filter(e=>e.notes&&e.notes.trim()).sort(byDateDesc), c=$("#notesList");
+  $("#notesCount").textContent=list.length+(list.length===1?" note":" notes");
+  if(!list.length){ c.innerHTML='<div class="empty"><div class="fig">…</div><p>No notes yet. Anything you write when logging a class shows up here as a reading feed.</p></div>'; return; }
+  c.innerHTML=list.map(noteCard).join("");
+  c.querySelectorAll(".note-head").forEach(h=>h.addEventListener("click",()=>h.closest(".note-card").classList.toggle("open")));
+  c.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();startEdit(b.dataset.edit);}));
+  c.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",async e=>{ e.stopPropagation(); if(confirm("Delete this class entry? This can’t be undone.")){ entries=entries.filter(x=>x.id!==b.dataset.del); await persist(); renderAll(); } }));
 }
 function distinct(f){ return [...new Set(entries.map(e=>e[f]).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
 function fillFilter(sel,f,all){ const cur=$(sel).value; $(sel).innerHTML='<option value="">'+all+'</option>'+distinct(f).map(v=>'<option'+(v===cur?' selected':'')+'>'+esc(v)+'</option>').join(''); }
@@ -506,11 +584,13 @@ function renderHistory(){
   });
   $("#historyCount").textContent=list.length+(list.length===1?" class":" classes");
   const c=$("#historyList");
+  if(!entries.length){ c.innerHTML='<div class="empty"><div class="fig">plié</div><p>Your journal is empty. Log your first class and it will appear here.</p></div>'; return; }
   if(!list.length){ c.innerHTML='<div class="empty"><p>No classes match your filters.</p></div>'; return; }
   c.innerHTML=list.map(entryRow).join(""); wireEntryList(c);
 }
 function monthKey(s){ if(s==="No date")return -1; const [mn,yr]=s.split(" "); return Number(yr)*12+MONTHS.indexOf(mn); }
 function renderSummary(){
+  renderHeatmap();
   const total=entries.length, totalMin=entries.reduce((s,e)=>s+(Number(e.minutes)||0),0), now=new Date();
   const thisMonth=entries.filter(e=>{const p=parseDate(e.date);return p.y===now.getFullYear()&&p.mo===now.getMonth();}).length;
   const avg=total?Math.round(totalMin/total):0;
@@ -530,11 +610,11 @@ function renderSummary(){
   if(!total){ box.innerHTML='<div class="empty"><p>Log a few classes and this is where the patterns show up — hours per level, your most-danced-with instructors, month by month.</p></div>'; return; }
   const head=groupBy==="level"?"Level / type":groupBy[0].toUpperCase()+groupBy.slice(1);
   box.innerHTML='<table class="summary"><thead><tr><th>'+head+'</th><th class="bar-cell">Share of time</th><th class="num">Classes</th><th class="num">Time</th></tr></thead><tbody>'
-    +rows.map(r=>'<tr><td><span class="gname">'+esc(r.key)+'<span class="sub">'+(r.min/60).toFixed(1)+' h · '+Math.round(r.min/maxMin*100)+'% of tracked time</span></span></td>'
+    +rows.map(r=>'<tr><td><span class="gname">'+esc(r.key)+'<span class="sub">'+(r.min/60).toFixed(1)+' h · '+Math.round(r.min/totalMin*100)+'% of tracked time</span></span></td>'
     +'<td class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(2,r.min/maxMin*100)+'%"></div></div></td>'
     +'<td class="num">'+r.count+'</td><td class="num">'+fmtLen(r.min)+'</td></tr>').join("")+'</tbody></table>';
 }
-function renderAll(){ refreshLists(); populateLevelSelect($("#f-level").value); renderRecent(); renderHistory(); renderSummary(); }
+function renderAll(){ refreshLists(); populateLevelSelect($("#f-level").value); renderHistory(); renderNotes(); renderSummary(); }
 
 /* ============ form ============ */
 function setMinChips(v){ $$("#minChips .chip-btn").forEach(b=>b.classList.toggle("on",Number(b.dataset.min)===Number(v))); }
@@ -614,7 +694,9 @@ function switchView(v){
   $$(".tab").forEach(t=>t.classList.toggle("active",t.dataset.view===v));
   $("#view-log").style.display=v==="log"?"block":"none";
   $("#view-history").style.display=v==="history"?"block":"none";
+  $("#view-notes").style.display=v==="notes"?"block":"none";
   $("#view-summary").style.display=v==="summary"?"block":"none";
+  if(v==="summary") renderHeatmap();
 }
 
 /* ============ init ============ */
